@@ -1,5 +1,9 @@
 package pl.edu.agh.iisg.to.model;
 
+import pl.edu.agh.iisg.to.executor.QueryExecutor;
+
+import java.sql.SQLException;
+
 public class Grade {
 
     public static final String TABLE_NAME = "grade";
@@ -14,8 +18,15 @@ public class Grade {
     }
 
     public static boolean markStudent(final Student student, final Course course, final float grade) {
-        //TODO [9] Implementacja oceniania studenta w danym kursie
-        return true;
+
+        String sql = "insert into grade (grade, student_id, course_id) values ('%s', '%s', '%s')";
+        String preparedSql = String.format(sql, grade, student.id(), course.id());
+        try {
+            QueryExecutor.createAndObtainId(preparedSql);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     public int id() {

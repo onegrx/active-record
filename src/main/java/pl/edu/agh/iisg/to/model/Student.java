@@ -91,8 +91,33 @@ public class Student {
     }
 
     public Map<Course, Float> createReport() {
-        //TODO [10] Implementacja tworzenia raportu dla studenta w każdym kursie z średnią ocen
-        return Collections.emptyMap();
+        String sql = "select course_id, grade from grade where student_id = '%s'";
+        String preparedSql = String.format(sql, id());
+        Map<Course, Float> report = new HashMap<>();
+        Map<Course, Integer> gradesNumbers = new HashMap<>();
+        try {
+            ResultSet set = QueryExecutor.read(preparedSql);
+            while (set.next()) {
+                Float grade = set.getFloat("grade");
+                int courseId = set.getInt("course_id");
+                Optional<Course> course = Course.findById(courseId);
+                if(course.isPresent()) {
+                    Course c = course.get();
+                    float sum = report.containsKey(c) ? report.get(c) : 0;
+                    report.put(c, sum + grade);
+                    int count = gradesNumbers.containsKey(c) ? gradesNumbers.get(c) : 0;
+                    gradesNumbers.put(c, count + 1);
+                }
+            }
+            Map<Course, Float> finalReport = new HashMap<>();
+            report.forEach((course, gradeSum) -> {
+                float mean = gradeSum / gradesNumbers.get(course);
+                finalReport.put(course, mean);
+            });
+            return finalReport;
+        } catch (SQLException e) {
+            return Collections.emptyMap();
+        }
     }
 
     public int id() {
